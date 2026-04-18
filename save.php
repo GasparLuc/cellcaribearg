@@ -1,5 +1,5 @@
 <?php
-define('ADMIN_PASSWORD', 'Sarita2024');
+define('ADMIN_PASSWORD', no me la sé XD);
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
