@@ -5,7 +5,7 @@ header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Admin-Password');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { exit(0); }
 
-define('ADMIN_PWD', 'Sarita2024');
+define('ADMIN_PWD', 'useyourpasswordbro');
 $file = __DIR__ . '/turnos.json';
 
 function loadTurnos($file) {
