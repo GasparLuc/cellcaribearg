@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cell Caribe — Panel Admin</title>
+<style>
+:root {
+  --bg:#0a0a0a; --surface:#141414; --surface2:#1a1a1a;
+  --border:rgba(255,255,255,0.08); --blue:#2196f3; --g:rgba(255,255,255,0.4);
+  --f:'Montserrat',sans-serif; --green:#22c55e; --red:#ef4444; --amber:#f59e0b;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:#fff;font-family:var(--f);min-height:100vh;}
+input,textarea,select,button{font-family:var(--f);}
+
+/* ── LOGIN ── */
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);}
+.lbox{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2.5rem;width:320px;display:flex;flex-direction:column;gap:1rem;}
+.llogo{font-size:1.1rem;font-weight:900;letter-spacing:.5px;text-transform:uppercase;margin-bottom:.5rem;}
+.llogo span{color:var(--blue);}
+.lbox label{font-size:.72rem;color:var(--g);}
+.lbox input{background:#111;border:1px solid var(--border);border-radius:10px;color:#fff;padding:.65rem .85rem;font-size:.88rem;width:100%;outline:none;}
+.lbox input:focus{border-color:var(--blue);}
+.btn-login{background:var(--blue);border:none;border-radius:10px;color:#fff;font-weight:600;padding:.75rem;cursor:pointer;font-size:.88rem;transition:background .2s;}
+.btn-login:hover{background:#1565c0;}
+.lerr{font-size:.75rem;color:var(--red);display:none;}
+#lerr.show{display:block;}
+
+/* ── APP ── */
+#app{display:none;flex-direction:column;min-height:100vh;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.5rem;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;}
+.tlogo{font-size:.82rem;font-weight:900;letter-spacing:.5px;text-transform:uppercase;}
+.tlogo span{color:var(--blue);}
+.tactions{display:flex;align-items:center;gap:10px;}
+.tbadge{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:.3rem .85rem;font-size:.72rem;color:var(--g);}
+.ubadge{width:8px;height:8px;border-radius:50%;background:var(--amber);display:none;}
+.ubadge.show{display:block;}
+.btn-save{background:var(--blue);border:none;border-radius:10px;color:#fff;font-weight:600;padding:.5rem 1.1rem;cursor:pointer;font-size:.78rem;display:flex;align-items:center;gap:6px;transition:background .2s;}
+.btn-save:disabled{opacity:.4;cursor:default;}
+.btn-save:not(:disabled):hover{background:#1565c0;}
+.btn-exit{background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--g);padding:.5rem .85rem;cursor:pointer;font-size:.78rem;transition:all .2s;}
+.btn-exit:hover{border-color:var(--red);color:var(--red);}
+
+/* ── TABS ── */
+.main-tabs{display:flex;gap:2px;padding:.75rem 1.5rem 0;background:var(--surface);border-bottom:1px solid var(--border);}
+.mtab{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--g);font-size:.75rem;font-weight:600;letter-spacing:.04em;padding:.55rem 1rem;cursor:pointer;font-family:var(--f);text-transform:uppercase;transition:color .15s,border-color .15s;display:flex;align-items:center;gap:5px;}
+.mtab:hover{color:#fff;}
+.mtab.active{color:#fff;border-bottom-color:var(--blue);}
+
+/* ── PANELS ── */
+.panel{display:none;padding:1.5rem;}
+.panel.active{display:block;}
+
+/* ── PRODUCTS ── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.25rem;}
+.stat-num{font-size:2rem;font-weight:800;margin-bottom:2px;}
+.stat-label{font-size:.65rem;letter-spacing:.12em;color:var(--g);text-transform:uppercase;}
+.cat-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem;}
+.cfilter{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:.32rem .75rem;font-size:.68rem;font-weight:600;color:var(--g);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.04em;}
+.cfilter.active,.cfilter:hover{background:var(--blue);border-color:var(--blue);color:#fff;}
+.prod-table{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.pt-head{display:grid;grid-template-columns:2fr 1.2fr 2fr 80px;gap:1rem;padding:.7rem 1.25rem;border-bottom:1px solid var(--border);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--g);}
+.pt-row{display:grid;grid-template-columns:2fr 1.2fr 2fr 80px;gap:1rem;padding:.85rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.04);align-items:start;transition:background .15s;}
+.pt-row:last-child{border-bottom:none;}
+.pt-row:hover{background:rgba(255,255,255,.02);}
+.prod-dot{width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:8px;flex-shrink:0;margin-top:5px;}
+.prod-dot.off{background:var(--red);}
+.pt-name{font-size:.85rem;font-weight:600;display:flex;align-items:flex-start;}
+.pt-cat{font-size:.65rem;color:var(--g);margin-top:2px;}
+.ei{background:#111;border:1px solid var(--border);border-radius:8px;color:#fff;padding:.35rem .65rem;font-size:.78rem;width:100%;outline:none;transition:border-color .15s;}
+.ei:focus{border-color:var(--blue);}
+.price-row{display:flex;gap:6px;margin-bottom:4px;align-items:center;}
+.price-s{font-size:.65rem;color:var(--g);width:46px;flex-shrink:0;}
+.toggle{position:relative;display:inline-block;width:36px;height:20px;}
+.toggle input{opacity:0;width:0;height:0;}
+.tslider{position:absolute;inset:0;background:#333;border-radius:20px;transition:.2s;}
+.tslider:before{content:"";position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;}
+.toggle input:checked + .tslider{background:var(--green);}
+.toggle input:checked + .tslider:before{transform:translateX(16px);}
+
+/* ── STOCK ── */
+.stock-tabs-admin{display:flex;gap:6px;margin-bottom:1.5rem;}
+.stab-admin{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:.4rem .9rem;font-size:.72rem;font-weight:600;color:var(--g);cursor:pointer;transition:all .15s;}
+.stab-admin.active,.stab-admin:hover{background:var(--blue);border-color:var(--blue);color:#fff;}
+.new-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
+.new-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.1rem;}
+.nc-row{margin-bottom:.65rem;}
+.nc-row label{display:block;font-size:.62rem;letter-spacing:.08em;color:var(--g);margin-bottom:3px;text-transform:uppercase;}
+.nc-footer{display:flex;align-items:center;gap:8px;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border);}
+.btn-add-model,.btn-add-new{background:rgba(33,150,243,.1);border:1px solid rgba(33,150,243,.25);border-radius:10px;color:var(--blue);padding:.55rem 1rem;cursor:pointer;font-size:.75rem;font-weight:600;display:flex;align-items:center;gap:6px;margin-bottom:1rem;transition:all .15s;}
+.btn-add-model:hover,.btn-add-new:hover{background:rgba(33,150,243,.2);}
+.btn-del{background:transparent;border:1px solid rgba(239,68,68,.2);border-radius:6px;color:rgba(239,68,68,.6);padding:.28rem .65rem;cursor:pointer;font-size:.68rem;transition:all .15s;}
+.btn-del:hover{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.08);}
+.used-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;}
+.used-sec-head{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;}
+.used-sec-title{font-size:.88rem;font-weight:700;}
+.used-sec-count{font-size:.65rem;color:var(--g);}
+.used-sec-body{padding:1rem 1.25rem;}
+.unit-row-admin{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 36px;gap:8px;align-items:center;margin-bottom:6px;}
+.unit-row-head{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 36px;gap:8px;margin-bottom:4px;}
+.unit-row-head span{font-size:.58rem;letter-spacing:.08em;color:var(--g);text-transform:uppercase;}
+.add-unit-btn{background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.1);border-radius:8px;color:var(--g);padding:.45rem;cursor:pointer;font-size:.72rem;width:100%;margin-top:.5rem;transition:all .15s;}
+.add-unit-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+/* ── ORDERS PANEL ── */
+#panel-pedidos{padding:0 !important;}
+.orders-toolbar{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:.75rem;background:var(--surface);}
+.orders-filters{display:flex;gap:6px;flex-wrap:wrap;}
+.ofilter{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:.38rem .85rem;font-size:.72rem;font-weight:500;color:var(--g);cursor:pointer;font-family:var(--f);transition:all .15s;white-space:nowrap;}
+.ofilter.active,.ofilter:hover{background:var(--blue);border-color:var(--blue);color:#fff;}
+.btn-refresh-orders{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--g);padding:.38rem .85rem;font-size:.72rem;cursor:pointer;transition:all .15s;}
+.btn-refresh-orders:hover{border-color:var(--blue);color:var(--blue);}
+.orders-loading,.orders-empty{color:var(--g);text-align:center;padding:3rem;font-size:.85rem;}
+#orders-list{padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:12px;}
+.order-card{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:14px;overflow:hidden;transition:border-color .2s;}
+.order-card-header{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02);}
+.order-num-status{display:flex;align-items:center;gap:10px;}
+.order-number{font-size:.78rem;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.05em;}
+.order-status-badge{font-size:.65rem;font-weight:600;padding:3px 9px;border-radius:100px;letter-spacing:.02em;}
+.status-nuevo{background:rgba(59,130,246,.15);color:#93c5fd;}
+.status-contactado{background:rgba(245,158,11,.15);color:#fcd34d;}
+.status-concretado{background:rgba(34,197,94,.15);color:#86efac;}
+.status-cancelado{background:rgba(239,68,68,.12);color:#fca5a5;}
+.order-date{font-size:.65rem;color:rgba(255,255,255,.2);}
+.order-card-body{padding:.85rem 1.25rem;}
+.order-client-name{font-size:.92rem;font-weight:700;color:#fff;margin-bottom:4px;}
+.order-client-contact{display:flex;gap:14px;flex-wrap:wrap;font-size:.75rem;color:rgba(255,255,255,.4);}
+.order-products{margin-top:.75rem;display:flex;flex-wrap:wrap;gap:5px;}
+.order-prod-tag{background:rgba(33,150,243,.1);border:1px solid rgba(33,150,243,.2);border-radius:6px;padding:3px 10px;font-size:.7rem;color:rgba(255,255,255,.65);}
+.order-note{margin-top:.65rem;font-size:.75rem;color:rgba(255,255,255,.38);background:rgba(255,255,255,.03);border-radius:8px;padding:6px 10px;}
+.order-card-footer{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-top:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.01);gap:.75rem;flex-wrap:wrap;}
+.order-status-select-wrap{display:flex;align-items:center;gap:8px;}
+.order-status-select-wrap label{font-size:.7rem;color:var(--g);}
+.order-status-select{background:#111;border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#fff;font-size:.72rem;padding:.35rem .65rem;cursor:pointer;outline:none;}
+.order-status-select:focus{border-color:var(--blue);}
+.order-actions{display:flex;gap:7px;flex-wrap:wrap;}
+.btn-order-wa{background:#25d366;border:none;border-radius:8px;color:#fff;font-size:.72rem;font-weight:600;padding:.38rem .85rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:background .15s;}
+.btn-order-wa:hover{background:#1ebe5a;}
+.btn-order-copy{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;color:var(--g);font-size:.72rem;padding:.38rem .85rem;cursor:pointer;transition:all .15s;}
+.btn-order-copy:hover{background:rgba(255,255,255,.1);color:#fff;}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1d1d1f;color:#fff;padding:.6rem 1.25rem;border-radius:10px;font-size:.78rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+#toast.show{opacity:1;}
+#toast.err{background:var(--red);}
+
+@media(max-width:700px){
+  .pt-head,.pt-row{grid-template-columns:1fr 80px;}
+  .pt-head .ph-badge,.pt-head .ph-prices,.pt-row .pt-badge-cell,.pt-row .pt-prices{display:none;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .topbar{padding:.65rem 1rem;}
+  .main-tabs{padding:.6rem 1rem 0;}
+}
+
+/* ═══ IMAGE UPLOAD ═══ */
+.img-upload-wrap { margin-top: .65rem; }
+.img-preview-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.img-thumb {
+  width: 52px; height: 52px; border-radius: 10px; object-fit: cover;
+  border: 1px solid var(--border); background: #111; flex-shrink: 0;
+  display: none;
+}
+.img-thumb.show { display: block; }
+.img-thumb-placeholder {
+  width: 52px; height: 52px; border-radius: 10px;
+  background: rgba(255,255,255,.04); border: 1px dashed rgba(255,255,255,.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; flex-shrink: 0; color: rgba(255,255,255,.25);
+}
+.img-actions { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+.img-url-input { width: 100%; }
+.btn-upload-file {
+  background: rgba(33,150,243,.08); border: 1px dashed rgba(33,150,243,.3);
+  border-radius: 8px; color: var(--blue); font-size: .7rem; font-weight: 600;
+  padding: .35rem .75rem; cursor: pointer; font-family: var(--f);
+  transition: all .15s; text-align: center; display: block; width: 100%;
+}
+.btn-upload-file:hover { background: rgba(33,150,243,.15); }
+.img-upload-status { font-size: .68rem; color: var(--g); min-height: 14px; }
+.img-upload-status.ok  { color: #22c55e; }
+.img-upload-status.err { color: var(--red); }
+input[type=file].hidden-file { display: none; }
+
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="lbox">
+    <div class="llogo">Cell<span>Caribe</span></div>
+    <label>Contraseña</label>
+    <input type="password" id="pwd" placeholder="••••••••" autocomplete="current-password">
+    <button class="btn-login" onclick="login()">Entrar al panel</button>
+    <div class="lerr" id="lerr">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <div class="topbar">
+    <div class="tlogo">Cell<span>Caribe</span> <small style="font-size:.6rem;color:var(--g);margin-left:4px;font-weight:400;">Admin</small></div>
+    <div class="tactions">
+      <div class="ubadge" id="ubadge" title="Cambios sin guardar"></div>
+      <span class="tbadge" id="cnt-badge">—</span>
+      <button class="btn-save" id="btn-save" onclick="saveActive()" disabled>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Guardar
+      </button>
+      <button class="btn-exit" onclick="logout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="main-tabs">
+    <button class="mtab active" onclick="switchTab('productos', this)">Productos</button>
+    <button class="mtab" onclick="switchTab('pedidos', this)">Pedidos <span id="pedidos-badge" style="background:#ef4444;color:#fff;font-size:.6rem;font-weight:700;min-width:16px;height:16px;border-radius:50%;display:none;align-items:center;justify-content:center;margin-left:5px;padding:0 3px;vertical-align:middle;">0</span></button>
+    <button class="mtab" onclick="switchTab('stock', this)">Stock</button>
+    <button class="mtab" onclick="switchTab('promo', this)">🔥 Promo</button>
+    <button class="mtab" onclick="switchTab('turnos', this)">Turnos <span id="turnos-badge" style="background:#0071e3;color:#fff;font-size:.6rem;font-weight:700;min-width:16px;height:16px;border-radius:50%;display:none;align-items:center;justify-content:center;margin-left:5px;padding:0 3px;vertical-align:middle;">0</span></button>
+  </div>
+
+  <!-- PANEL: PRODUCTOS -->
+  <div id="panel-productos" class="panel active">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num" id="stat-total" style="color:var(--blue)">—</div><div class="stat-label">Total</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-visible" style="color:var(--green)">—</div><div class="stat-label">Visibles</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-hidden" style="color:var(--red)">—</div><div class="stat-label">Ocultos</div></div>
+    </div>
+    <div class="cat-filters" id="cat-filters">
+      <button class="cfilter active" onclick="filterProds('all',this)">Todos</button>
+      <button class="cfilter" onclick="filterProds('iphone17',this)">iPhone 17</button>
+      <button class="cfilter" onclick="filterProds('iphone16',this)">iPhone 16</button>
+      <button class="cfilter" onclick="filterProds('iphone15',this)">iPhone 15</button>
+      <button class="cfilter" onclick="filterProds('iphone14',this)">iPhone 14</button>
+      <button class="cfilter" onclick="filterProds('mac',this)">Mac</button>
+      <button class="cfilter" onclick="filterProds('accesorios',this)">Accesorios</button>
+    </div>
+    <div class="prod-table">
+      <div class="pt-head"><span>Producto</span><span class="ph-badge">Badge</span><span class="ph-prices">Precios</span><span>Visible</span></div>
+      <div id="prod-rows"></div>
+    </div>
+  </div>
+
+  <!-- PANEL: PEDIDOS -->
+  <div id="panel-pedidos" class="panel">
+    <div class="orders-toolbar">
+      <div class="orders-filters">
+        <button class="ofilter active" onclick="filterOrders('all',this)">Todos</button>
+        <button class="ofilter" onclick="filterOrders('nuevo',this)">🔵 Nuevos</button>
+        <button class="ofilter" onclick="filterOrders('contactado',this)">🟡 Contactados</button>
+        <button class="ofilter" onclick="filterOrders('concretado',this)">🟢 Concretados</button>
+        <button class="ofilter" onclick="filterOrders('cancelado',this)">🔴 Cancelados</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="orders-count-label" style="font-size:.72rem;color:var(--g);"></span>
+        <button onclick="loadOrders()" class="btn-refresh-orders">↻ Actualizar</button>
+      </div>
+    </div>
+    <div id="orders-list"><div class="orders-loading">Abrí esta sección para cargar los pedidos.</div></div>
+  </div>
+
+  <!-- PANEL: STOCK -->
+  <div id="panel-stock" class="panel">
+    <div class="stock-tabs-admin">
+      <button class="stab-admin active" onclick="switchStock('new',this)">Nuevos</button>
+      <button class="stab-admin" onclick="switchStock('used',this)">Usados</button>
+    </div>
+
+    <!-- Stock Nuevos -->
+    <div id="stock-new-panel">
+      <button class="btn-add-new" onclick="addNewProduct()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Agregar producto nuevo
+      </button>
+      <div class="new-grid" id="new-grid"></div>
+    </div>
+
+    <!-- Stock Usados -->
+    <div id="stock-used-panel" style="display:none;">
+      <button class="btn-add-model" onclick="addUsedModel()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Agregar modelo
+      </button>
+      <div id="used-sections"></div>
+    </div>
+  </div>
+
+</div>
+
+  <!-- PANEL: TURNOS -->
+  <div id="panel-turnos" class="panel">
+    <div class="orders-toolbar">
+      <div class="orders-filters">
+        <button class="ofilter active" onclick="filterTurnos('all',this)">Todos</button>
+        <button class="ofilter" onclick="filterTurnos('pendiente',this)">🟡 Pendientes</button>
+        <button class="ofilter" onclick="filterTurnos('confirmado',this)">🟢 Confirmados</button>
+        <button class="ofilter" onclick="filterTurnos('completado',this)">✅ Completados</button>
+        <button class="ofilter" onclick="filterTurnos('cancelado',this)">🔴 Cancelados</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="turnos-count-label" style="font-size:.72rem;color:var(--g);"></span>
+        <button onclick="loadTurnos()" class="btn-refresh-orders">↻ Actualizar</button>
+      </div>
+    </div>
+
+    <!-- Block slot form -->
+    <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);background:var(--surface);">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-size:.72rem;color:var(--g);font-weight:600;">Bloquear horario:</span>
+        <input type="date" id="block-date" class="ei" style="width:140px;">
+        <select id="block-time" class="ei" style="width:100px;">
+          <option value="">Hora</option>
+        </select>
+        <input type="text" id="block-reason" class="ei" placeholder="Motivo (opcional)" style="width:160px;">
+        <button onclick="blockSlot()" style="background:var(--red);border:none;border-radius:8px;color:#fff;font-size:.72rem;font-weight:600;padding:.38rem .85rem;cursor:pointer;">Bloquear</button>
+      </div>
+    </div>
+
+    <div id="turnos-list" style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:12px;">
+      <div class="orders-loading">Abrí esta sección para cargar los turnos.</div>
+    </div>
+  </div>
+
+
+<!-- IMAGE MODAL -->
+<div id="img-modal-backdrop" onclick="closeImgModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;"></div>
+<div id="img-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1001;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:1.75rem;width:360px;max-width:90vw;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+    <div style="font-size:.85rem;font-weight:700;color:#fff;" id="img-modal-title">Imagen del producto</div>
+    <button onclick="closeImgModal()" style="background:transparent;border:none;color:rgba(255,255,255,.4);font-size:1.2rem;cursor:pointer;line-height:1;">✕</button>
+  </div>
+  <!-- Preview -->
+  <div id="img-modal-preview" style="width:100%;height:180px;background:#111;border-radius:12px;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;margin-bottom:1.1rem;overflow:hidden;">
+    <span style="color:rgba(255,255,255,.2);font-size:.82rem;">Sin imagen</span>
+  </div>
+  <!-- Upload from PC -->
+  <label style="display:block;background:rgba(33,150,243,.1);border:1px dashed rgba(33,150,243,.4);border-radius:10px;color:#2196f3;font-size:.78rem;font-weight:600;padding:.7rem;text-align:center;cursor:pointer;margin-bottom:.65rem;transition:background .15s;" onmouseover="this.style.background='rgba(33,150,243,.18)'" onmouseout="this.style.background='rgba(33,150,243,.1)'">
+    📁 Subir imagen desde PC
+    <input type="file" id="img-modal-file" accept="image/*" style="display:none" onchange="handleModalFile(this)">
+  </label>
+  <!-- URL input -->
+  <div style="font-size:.68rem;color:rgba(255,255,255,.35);text-align:center;margin-bottom:.5rem;">— o pegá una URL —</div>
+  <input type="url" id="img-modal-url" placeholder="https://..." style="width:100%;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:.6rem .85rem;font-size:.82rem;outline:none;margin-bottom:.75rem;">
+  <button onclick="applyModalUrl()" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:rgba(255,255,255,.6);font-size:.78rem;padding:.55rem;cursor:pointer;margin-bottom:.75rem;">Aplicar URL</button>
+  <!-- Status -->
+  <div id="img-modal-status" style="font-size:.75rem;font-weight:600;text-align:center;min-height:20px;"></div>
+  <!-- Confirm -->
+  <button id="img-modal-save" onclick="saveModalImg()" style="display:none;width:100%;background:#2196f3;border:none;border-radius:10px;color:#fff;font-size:.82rem;font-weight:700;padding:.75rem;cursor:pointer;margin-top:.65rem;">✓ Guardar imagen</button>
+</div>
+
+  <!-- PANEL: PROMO SEMANAL -->
+  <div id="panel-promo" class="panel">
+    <div style="max-width:680px;margin:0 auto;">
+
+      <!-- Toggle -->
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.25rem;margin-bottom:16px;">
+        <div>
+          <div style="font-size:.88rem;font-weight:700;color:#fff;">Promo activa</div>
+          <div style="font-size:.72rem;color:var(--g);margin-top:2px;">Activar para mostrar la promo en el sitio</div>
+        </div>
+        <label class="toggle" style="width:44px;height:24px;">
+          <input type="checkbox" id="promo-active">
+          <span class="tslider"></span>
+        </label>
+      </div>
+
+      <!-- Fields -->
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:1.25rem;display:flex;flex-direction:column;gap:1rem;">
+
+        <div style="font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--g);font-weight:700;padding-bottom:.5rem;border-bottom:1px solid var(--border);">Contenido</div>
+
+        <div class="nc-row"><label style="font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--g);display:block;margin-bottom:4px;">Badge (ej: Oferta Especial)</label>
+          <input class="ei" id="promo-badge" placeholder="Oferta Especial"></div>
+
+        <div class="nc-row"><label style="font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--g);display:block;margin-bottom:4px;">Nombre del producto</label>
+          <input class="ei" id="promo-title" placeholder="iPhone 15 Pro Max"></div>
+
+        <div class="nc-row"><label style="font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--g);display:block;margin-bottom:4px;">Descuento</label>
+          <input class="ei" id="promo-discount" placeholder="15% OFF"></div>
+
+        <div class="nc-row"><label style="font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--g);display:block;margin-bottom:4px;">Descripción</label>
+          <textarea class="ei" id="promo-desc" rows="2" placeholder="Aprovechá esta oferta por tiempo limitado..."></textarea></div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="nc-row"><label style="font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--g);display:block;margin-bottom:4px;">Precio original (opcional)</label>
+            <input class="ei" id="promo-price-orig" placeholder="$1.799.999"></div>
+          <div class="nc-row"><label style="font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--g);display:block;margin-bottom:4px;">Precio promo</label>
+            <input class="ei" id="promo-price-new" placeholder="$1.439.999"></div>
+        </div>
+
+        <div class="nc-row"><label style="font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--g);display:block;margin-bottom:4px;">Texto WhatsApp al consultar</label>
+          <input class="ei" id="promo-wa" placeholder="Hola! Quiero consultar la promo de la semana"></div>
+
+        <div style="font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--g);font-weight:700;padding:.75rem 0 .5rem;border-top:1px solid var(--border);margin-top:.25rem;">Cuenta regresiva</div>
+
+        <div class="nc-row">
+          <label style="font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--g);display:block;margin-bottom:4px;">Fecha y hora de vencimiento</label>
+          <input class="ei" type="datetime-local" id="promo-countdown">
+          <div style="font-size:.65rem;color:var(--g);margin-top:4px;">Dejá vacío para no mostrar cuenta regresiva</div>
+        </div>
+
+        <div style="font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--g);font-weight:700;padding:.75rem 0 .5rem;border-top:1px solid var(--border);margin-top:.25rem;">Imagen del producto</div>
+
+        <!-- Image preview -->
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div id="promo-img-prev" style="width:80px;height:90px;border-radius:12px;border:1px dashed rgba(255,255,255,.15);background:#111;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;overflow:hidden;">📱</div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+            <input class="ei" id="promo-img-url" type="url" placeholder="URL de imagen (https://...)" oninput="previewPromoImg()">
+            <label class="btn-upload-file" style="text-align:center;">
+              📁 Subir imagen desde PC
+              <input type="file" style="display:none;" accept="image/*" onchange="handlePromoImgFile(this)">
+            </label>
+            <div id="promo-img-status" style="font-size:.68rem;color:var(--g);min-height:14px;"></div>
+          </div>
+        </div>
+
+        <!-- Preview vivo -->
+        <div style="border-top:1px solid var(--border);margin-top:.5rem;padding-top:1rem;">
+          <div style="font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--g);font-weight:700;margin-bottom:.75rem;">Preview</div>
+          <div id="promo-preview-box" style="background:linear-gradient(135deg,#0a0a2e,#001f4d);border-radius:14px;padding:1.25rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;min-height:80px;">
+            <div>
+              <div id="pp-badge" style="font-size:.62rem;color:#ff6b6b;font-weight:700;margin-bottom:4px;">🔥 Oferta Especial</div>
+              <div id="pp-title" style="font-size:1rem;font-weight:800;color:#fff;margin-bottom:2px;">—</div>
+              <div id="pp-disc" style="font-size:.88rem;font-weight:800;color:#ff6b6b;">—</div>
+              <div id="pp-price" style="font-size:.78rem;color:rgba(255,255,255,.6);margin-top:4px;"></div>
+            </div>
+            <div id="pp-img" style="font-size:2.5rem;">📱</div>
+          </div>
+        </div>
+
+      </div>
+
+      <button onclick="savePromo()" style="width:100%;background:var(--blue);border:none;border-radius:12px;color:#fff;font-size:.88rem;font-weight:700;padding:.9rem;cursor:pointer;margin-top:14px;font-family:var(--f);transition:background .2s;" onmouseover="this.style.background='#1565c0'" onmouseout="this.style.background=var('--blue')">
+        💾 Guardar promo
+      </button>
+
+    </div>
+  </div>
+
+<div id="toast">✓ Guardado</div>
+
+<script>
+// ─── STATE ─────────────────────────────────────────────────────
+let pwd = '', products = [], stock = {new:[], used:[]};
+let activeTab = 'productos', dirty = false;
+
+// ─── AUTH ──────────────────────────────────────────────────────
+async function login(){
+  const p = document.getElementById('pwd').value.trim();
+  document.getElementById('lerr').classList.remove('show');
+  // Verificacion directa en JS — sin depender del servidor
+  if(p !== 'Sarita2024'){
+    document.getElementById('lerr').classList.add('show');
+    return;
+  }
+  pwd = p;
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('app').style.flexDirection='column';
+  await loadAll();
+}
+function logout(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('login').style.display='flex';
+  document.getElementById('pwd').value='';
+  markClean();
+}
+document.getElementById('pwd').addEventListener('keydown', e=>{ if(e.key==='Enter') login(); });
+
+// ─── LOAD ──────────────────────────────────────────────────────
+// Embedded fallback data (always available)
+const STOCK_EMBEDDED = {"new": [{"id": "macbook_neo_256", "name": "MacBook Neo", "storage": "256GB", "price": "$860", "colors": ["Indigo", "Blush", "Citrus", "Silver"], "visible": true}, {"id": "macbook_neo_512", "name": "MacBook Neo", "storage": "512GB", "price": "$1000", "colors": ["Citrus"], "visible": true}, {"id": "ipad_a16_11", "name": "iPad A16 11\"", "storage": "128GB WiFi", "price": "$480", "colors": ["Blue", "Pink"], "visible": true}, {"id": "ipad_pro_13_m5", "name": "iPad Pro 13\" M5", "storage": "256GB", "price": "$1465", "colors": ["Space Black"], "visible": true}, {"id": "watch_ultra3", "name": "Apple Watch Ultra 3", "storage": "", "price": "$860", "colors": ["Black"], "visible": true}, {"id": "iph14pm_128_cpo", "name": "iPhone 14 Pro Max", "storage": "128GB CPO", "price": "$800", "colors": ["Gold", "Silver"], "badge": "CPO", "visible": true}, {"id": "iph14pm_256_cpo", "name": "iPhone 14 Pro Max", "storage": "256GB CPO", "price": "$850", "colors": ["Gold", "Black"], "badge": "CPO", "visible": true}, {"id": "iph15pro_128_cpo", "name": "iPhone 15 Pro", "storage": "128GB CPO", "price": "$820", "colors": ["Blue"], "badge": "CPO", "visible": true}, {"id": "iph15pm_256_cpo_1", "name": "iPhone 15 Pro Max", "storage": "256GB CPO", "price": "$1000", "colors": ["Black"], "badge": "CPO", "visible": true}, {"id": "iph15pm_256_cpo_2", "name": "iPhone 15 Pro Max", "storage": "256GB CPO", "price": "$1015", "colors": ["Natural", "Blue"], "badge": "CPO", "visible": true}, {"id": "iph16pro_128_cpo", "name": "iPhone 16 Pro", "storage": "128GB CPO", "price": "$1020", "colors": ["Desert", "Black", "White"], "badge": "CPO", "visible": true}, {"id": "iph16pro_256_cpo", "name": "iPhone 16 Pro", "storage": "256GB CPO", "price": "$1070", "colors": ["White", "Black", "Desert"], "badge": "CPO", "visible": true}, {"id": "iph16pm_256_cpo", "name": "iPhone 16 Pro Max", "storage": "256GB CPO", "price": "$1175", "colors": ["White"], "badge": "CPO", "visible": true}, {"id": "iph16pm_512_cpo", "name": "iPhone 16 Pro Max", "storage": "512GB CPO", "price": "$1270", "colors": ["Desert"], "badge": "CPO", "visible": true}, {"id": "iph15_128_new", "name": "iPhone 15", "storage": "128GB", "price": "$715", "colors": ["Black", "Blue"], "badge": "Nuevo", "visible": true}, {"id": "iph16plus_128_new", "name": "iPhone 16 Plus", "storage": "128GB", "price": "$880", "colors": ["Pink"], "badge": "Nuevo", "visible": true}, {"id": "iph17e_256", "name": "iPhone 17e", "storage": "256GB", "price": "$735", "colors": ["Black", "White"], "badge": "Nuevo", "visible": true}, {"id": "iph17_256_925", "name": "iPhone 17", "storage": "256GB", "price": "$925", "colors": ["Blue", "Sage", "Black", "White"], "badge": "Nuevo", "visible": true}, {"id": "iph17_256_910", "name": "iPhone 17", "storage": "256GB", "price": "$910", "colors": ["Lavender"], "badge": "Nuevo", "visible": true}, {"id": "iph17pro_256", "name": "iPhone 17 Pro", "storage": "256GB", "price": "$1360", "colors": ["Silver"], "badge": "Nuevo", "visible": true}, {"id": "iph17pm_256_orange", "name": "iPhone 17 Pro Max", "storage": "256GB", "price": "$1510", "colors": ["Orange"], "badge": "Nuevo", "visible": true}, {"id": "iph17pm_256_silver", "name": "iPhone 17 Pro Max", "storage": "256GB", "price": "$1520", "colors": ["Silver"], "badge": "Nuevo", "visible": true}, {"id": "adaptador_20w", "name": "Adaptador 20W Original", "storage": "USA", "price": "$27 (1u) / $24 (10u) / $20 (100u)", "colors": ["White"], "badge": "Accesorio", "visible": true}, {"id": "cable_usbc", "name": "Cable Apple USB-C — USB-C", "storage": "1 metro", "price": "$18", "colors": ["White"], "badge": "Accesorio", "visible": true}], "used": [{"model": "iPhone 13", "storage": "128GB", "units": [{"color": "Midnight", "battery": "89", "price": "425", "note": "A+"}, {"color": "Midnight", "battery": "87", "price": "425", "note": ""}, {"color": "Midnight", "battery": "86", "price": "425", "note": ""}, {"color": "Midnight", "battery": "85", "price": "420", "note": ""}, {"color": "Midnight", "battery": "84", "price": "415", "note": ""}]}, {"model": "iPhone 13 Pro", "storage": "256GB", "units": [{"color": "Blue", "battery": "84", "price": "520", "note": ""}, {"color": "Blue", "battery": "83", "price": "520", "note": ""}, {"color": "Blue", "battery": "78-82", "price": "505", "note": ""}, {"color": "Silver", "battery": "84", "price": "520", "note": ""}, {"color": "Silver", "battery": "83", "price": "520", "note": ""}, {"color": "Silver", "battery": "79", "price": "505", "note": ""}, {"color": "Green", "battery": "86", "price": "520", "note": ""}, {"color": "Green", "battery": "85", "price": "520", "note": ""}, {"color": "Green", "battery": "84", "price": "520", "note": ""}, {"color": "Green", "battery": "80", "price": "505", "note": ""}, {"color": "Graphite", "battery": "83", "price": "520", "note": ""}, {"color": "Graphite", "battery": "78", "price": "505", "note": ""}, {"color": "Graphite", "battery": "77", "price": "505", "note": ""}, {"color": "Gold", "battery": "86", "price": "560", "note": ""}, {"color": "Gold", "battery": "79", "price": "505", "note": ""}, {"color": "Gold", "battery": "77", "price": "505", "note": ""}]}, {"model": "iPhone 14 Plus", "storage": "128GB", "units": [{"color": "Purple", "battery": "85", "price": "490", "note": ""}, {"color": "Purple", "battery": "82", "price": "480", "note": ""}, {"color": "Black", "battery": "85", "price": "490", "note": ""}, {"color": "Blue", "battery": "85", "price": "490", "note": ""}, {"color": "Blue", "battery": "84", "price": "480", "note": ""}]}, {"model": "iPhone 14 Pro", "storage": "256GB", "units": [{"color": "Black", "battery": "100", "price": "590", "note": ""}, {"color": "Black", "battery": "83", "price": "560", "note": ""}, {"color": "Black", "battery": "76-79", "price": "550", "note": ""}, {"color": "Purple", "battery": "85", "price": "560", "note": ""}, {"color": "Purple", "battery": "81", "price": "560", "note": ""}, {"color": "Purple", "battery": "76-79", "price": "550", "note": ""}]}, {"model": "iPhone 14 Pro Max", "storage": "128GB", "units": [{"color": "Purple", "battery": "84", "price": "670", "note": ""}, {"color": "Black", "battery": "77", "price": "670", "note": ""}]}, {"model": "iPhone 15", "storage": "128GB", "units": [{"color": "Black", "battery": "100", "price": "600", "note": "Gtía Apple"}, {"color": "Blue", "battery": "87", "price": "560", "note": ""}, {"color": "Blue", "battery": "86", "price": "560", "note": ""}, {"color": "Blue", "battery": "85", "price": "560", "note": ""}, {"color": "Green", "battery": "85", "price": "560", "note": ""}, {"color": "Black", "battery": "86", "price": "560", "note": ""}, {"color": "Black", "battery": "85", "price": "560", "note": ""}]}, {"model": "iPhone 15 Plus", "storage": "128GB", "units": [{"color": "Black", "battery": "87", "price": "550", "note": ""}, {"color": "Black", "battery": "83", "price": "540", "note": ""}, {"color": "Black", "battery": "82", "price": "540", "note": ""}, {"color": "Black", "battery": "81", "price": "540", "note": ""}, {"color": "Black", "battery": "79-75", "price": "530", "note": ""}]}, {"model": "iPhone 15 Pro", "storage": "128GB", "units": [{"color": "White", "battery": "88", "price": "650", "note": ""}, {"color": "Natural", "battery": "89", "price": "650", "note": ""}, {"color": "Natural", "battery": "87", "price": "650", "note": ""}, {"color": "Natural", "battery": "84", "price": "630", "note": ""}, {"color": "Natural", "battery": "81", "price": "630", "note": ""}, {"color": "Blue", "battery": "88", "price": "650", "note": ""}, {"color": "Blue", "battery": "87", "price": "650", "note": ""}, {"color": "Blue", "battery": "86", "price": "650", "note": ""}, {"color": "Blue", "battery": "85", "price": "650", "note": ""}]}, {"model": "iPhone 15 Pro", "storage": "256GB", "units": [{"color": "Black", "battery": "88", "price": "680", "note": ""}, {"color": "Black", "battery": "86", "price": "680", "note": ""}, {"color": "Black", "battery": "80", "price": "660", "note": ""}, {"color": "Natural", "battery": "88", "price": "680", "note": ""}, {"color": "Natural", "battery": "85", "price": "670", "note": ""}, {"color": "Natural", "battery": "83", "price": "660", "note": ""}, {"color": "Blue", "battery": "89", "price": "680", "note": ""}, {"color": "Blue", "battery": "87", "price": "680", "note": ""}]}, {"model": "iPhone 15 Pro Max", "storage": "256GB", "units": [{"color": "Blue", "battery": "88", "price": "745", "note": ""}, {"color": "Blue", "battery": "87", "price": "745", "note": ""}, {"color": "Blue", "battery": "86", "price": "745", "note": ""}, {"color": "Blue", "battery": "85", "price": "745", "note": ""}, {"color": "Blue", "battery": "83", "price": "735", "note": ""}, {"color": "White", "battery": "84", "price": "735", "note": ""}, {"color": "White", "battery": "79", "price": "725", "note": ""}, {"color": "Black", "battery": "86", "price": "745", "note": ""}, {"color": "Black", "battery": "85", "price": "745", "note": ""}, {"color": "Black", "battery": "84", "price": "735", "note": ""}]}, {"model": "iPhone 16", "storage": "128GB", "units": [{"color": "Pink", "battery": "100", "price": "725", "note": "Sin activar"}, {"color": "Pink", "battery": "100", "price": "715", "note": ""}, {"color": "Pink", "battery": "91", "price": "710", "note": ""}, {"color": "Pink", "battery": "90", "price": "710", "note": ""}, {"color": "Black", "battery": "100", "price": "710", "note": ""}, {"color": "Ultramarine", "battery": "100", "price": "710", "note": ""}, {"color": "Ultramarine", "battery": "92", "price": "690", "note": ""}]}, {"model": "iPhone 16", "storage": "256GB", "units": [{"color": "Pink", "battery": "100", "price": "760", "note": ""}, {"color": "White", "battery": "100", "price": "760", "note": ""}, {"color": "Ultramarine", "battery": "100", "price": "760", "note": ""}, {"color": "Black", "battery": "100", "price": "760", "note": ""}]}, {"model": "iPhone 16 Plus", "storage": "128GB", "units": [{"color": "White", "battery": "100", "price": "730", "note": ""}, {"color": "Black", "battery": "100", "price": "730", "note": ""}, {"color": "Black", "battery": "94", "price": "710", "note": ""}, {"color": "Black", "battery": "91", "price": "710", "note": ""}, {"color": "Ultramarine", "battery": "95", "price": "710", "note": ""}]}, {"model": "iPhone 16 Pro", "storage": "128GB", "units": [{"color": "Desert", "battery": "90", "price": "820", "note": ""}, {"color": "Desert", "battery": "89", "price": "810", "note": ""}, {"color": "Black", "battery": "91", "price": "820", "note": ""}]}, {"model": "iPhone 16 Pro", "storage": "256GB", "units": [{"color": "White", "battery": "92", "price": "870", "note": ""}, {"color": "Desert", "battery": "92", "price": "870", "note": ""}, {"color": "Natural", "battery": "92", "price": "870", "note": ""}, {"color": "Natural", "battery": "87", "price": "860", "note": ""}, {"color": "Black", "battery": "91", "price": "870", "note": ""}]}, {"model": "iPhone 16 Pro Max", "storage": "256GB", "units": [{"color": "Black", "battery": "100", "price": "990", "note": ""}, {"color": "Desert", "battery": "96", "price": "970", "note": ""}, {"color": "Desert", "battery": "95", "price": "970", "note": ""}]}]};
+const PRODUCTS_EMBEDDED = [{"id": "iphone_17pm", "name": "iPhone 17 Pro Max", "cat": "iphone17", "badge": "Nuevo 2025", "badge_cls": "hot", "bg": "#f5f5f7", "img": "iphone_17pm", "visible": true, "prices": [{"s": "256GB", "p": "$2.110.040"}, {"s": "512GB", "p": "$2.451.370"}, {"s": "1TB", "p": "$2.870.275"}, {"s": "2TB", "p": "$3.397.785"}]}, {"id": "iphone_17pro", "name": "iPhone 17 Pro", "cat": "iphone17", "badge": "Nuevo 2025", "badge_cls": "hot", "bg": "#f5f5f7", "img": "iphone_17pro", "visible": true, "prices": [{"s": "256GB", "p": "$1.962.647"}, {"s": "512GB", "p": "$2.265.190"}, {"s": "1TB", "p": "$2.614.277"}]}, {"id": "iphone_17air", "name": "iPhone 17 Air", "cat": "iphone17", "badge": "Nuevo 2025", "badge_cls": "hot", "bg": "#f5f5f7", "img": "iphone_17air", "visible": true, "prices": [{"s": "256GB", "p": "$1.547.150"}]}, {"id": "iphone_17", "name": "iPhone 17", "cat": "iphone17", "badge": "Nuevo 2025", "badge_cls": "hot", "bg": "#f5f5f7", "img": "iphone_17", "visible": true, "prices": [{"s": "256GB", "p": "$1.459.425"}, {"s": "512GB", "p": "$1.706.650"}]}, {"id": "iphone_16pm", "name": "iPhone 16 Pro Max", "cat": "iphone16", "badge": "Disponible", "badge_cls": "", "bg": "#f5f5f7", "img": "iphone_16pm", "visible": true, "prices": [{"s": "256GB", "p": "$2.001.435"}]}, {"id": "iphone_16pro", "name": "iPhone 16 Pro", "cat": "iphone16", "badge": "Disponible", "badge_cls": "", "bg": "#f5f5f7", "img": "iphone_16pro", "visible": true, "prices": [{"s": "Varios configs", "p": "→ WhatsApp"}]}, {"id": "iphone_16", "name": "iPhone 16", "cat": "iphone16", "badge": "Disponible", "badge_cls": "", "bg": "#f5f5f7", "img": "iphone_16", "visible": true, "prices": [{"s": "128GB", "p": "$1.188.275"}, {"s": "256GB", "p": "$1.387.650"}]}, {"id": "iphone_16e", "name": "iPhone 16e", "cat": "iphone16", "badge": "Nuevo", "badge_cls": "", "bg": "#f5f5f7", "img": "iphone_16e", "visible": true, "prices": [{"s": "128GB", "p": "$957.000"}]}, {"id": "iphone_15pm", "name": "iPhone 15 Pro Max", "cat": "iphone15", "badge": "Disponible", "badge_cls": "", "bg": "#f5f5f7", "img": "iphone_15pm", "visible": true, "prices": [{"s": "Varios configs", "p": "→ WhatsApp"}]}, {"id": "iphone_15", "name": "iPhone 15", "cat": "iphone15", "badge": "Disponible", "badge_cls": "", "bg": "#f5f5f7", "img": "iphone_15", "visible": true, "prices": [{"s": "128GB", "p": "$1.028.775"}, {"s": "256GB", "p": "$1.164.350"}, {"s": "512GB", "p": "$1.276.000"}]}, {"id": "iphone_15plus", "name": "iPhone 15 Plus", "cat": "iphone15", "badge": "Disponible", "badge_cls": "", "bg": "#f5f5f7", "img": "iphone_15plus", "visible": true, "prices": [{"s": "128GB", "p": "$1.132.450"}, {"s": "256GB", "p": "$1.276.000"}, {"s": "512GB", "p": "$1.355.750"}]}, {"id": "iphone_14", "name": "iPhone 14", "cat": "iphone14", "badge": "Caja sellada", "badge_cls": "used", "bg": "#f5f5f7", "img": "iphone_14", "visible": true, "prices": [{"s": "128GB", "p": "$925.100"}, {"s": "256GB", "p": "$988.900"}, {"s": "512GB", "p": "$1.052.700"}]}, {"id": "iphone_14plus", "name": "iPhone 14 Plus", "cat": "iphone14", "badge": "Caja sellada", "badge_cls": "used", "bg": "#f5f5f7", "img": "iphone_14plus", "visible": true, "prices": [{"s": "128GB", "p": "$1.004.850"}]}, {"id": "macbook_air_m2", "name": "MacBook Air M2", "cat": "mac", "badge": "M2 chip", "badge_cls": "hot", "bg": "#f5f5f7", "img": "macbook_m2", "visible": true, "prices": [{"s": "8GB 256GB", "p": "Consultar"}]}, {"id": "macbook_pro_m4", "name": "MacBook Pro 14\"", "cat": "mac", "badge": "M4 chip", "badge_cls": "hot", "bg": "#f5f5f7", "img": "macbook_m4", "visible": true, "prices": [{"s": "Garantía Apple", "p": "Consultar"}]}, {"id": "macbook_air_m3", "name": "MacBook Air M3", "cat": "mac", "badge": "M3 chip", "badge_cls": "hot", "bg": "#f5f5f7", "img": "macbook_air_m3", "visible": true, "prices": [{"s": "8GB 256GB", "p": "Consultar"}]}, {"id": "airpods_pro2", "name": "AirPods Pro 2", "cat": "audio", "badge": "Disponible", "badge_cls": "", "bg": "#f5f5f7", "img": "airpods_pro2", "visible": true, "prices": [{"s": "USB-C · ANC", "p": "$549.999"}]}, {"id": "magsafe", "name": "Cargador MagSafe", "cat": "audio", "badge": "Accesorio", "badge_cls": "", "bg": "#f5f5f7", "img": "magsafe", "visible": true, "prices": [{"s": "Original Apple", "p": "$89.999"}]}];
+
+async function loadAll(){
+  // Start with embedded data — guaranteed to work
+  stock = JSON.parse(JSON.stringify(STOCK_EMBEDDED));
+  products = JSON.parse(JSON.stringify(PRODUCTS_EMBEDDED));
+
+  // Render immediately
+  renderProducts();
+  renderNewStock();
+  renderUsedStock();
+  updateBadge();
+
+  // Then try to fetch fresh data from server in background
+  try {
+    const r1 = await fetch('products.json?v='+Date.now());
+    if(r1.ok) { products = await r1.json(); renderProducts(); updateBadge(); }
+  } catch(e) { console.warn('products.json fetch failed, using embedded'); }
+
+  try {
+    const r2 = await fetch('stock.json?v='+Date.now());
+    if(r2.ok) { stock = await r2.json(); renderNewStock(); renderUsedStock(); }
+  } catch(e) { console.warn('stock.json fetch failed, using embedded'); }
+}
+
+// ─── SAVE ──────────────────────────────────────────────────────
+async function saveActive(){
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    const h = {'Content-Type':'application/json','X-Admin-Password':pwd};
+    const [r1, r2] = await Promise.all([
+      fetch('save.php?pwd='+encodeURIComponent(pwd), {method:'POST', headers:h, body: JSON.stringify(products)}),
+      fetch('save.php?type=stock&pwd='+encodeURIComponent(pwd), {method:'POST', headers:h, body: JSON.stringify(stock)})
+    ]);
+    const [d1, d2] = await Promise.all([r1.json(), r2.json()]);
+    if(d1.ok && d2.ok){ markClean(); showToast('✓ Guardado'); }
+    else showToast('Error al guardar', true);
+  } catch(e){ showToast('Error de red', true); }
+  btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Guardar';
+}
+
+function markDirty(){
+  dirty = true;
+  document.getElementById('ubadge').classList.add('show');
+  document.getElementById('btn-save').disabled = false;
+}
+function markClean(){
+  dirty = false;
+  document.getElementById('ubadge').classList.remove('show');
+  document.getElementById('btn-save').disabled = true;
+}
+
+// ─── TAB SWITCHING ─────────────────────────────────────────────
+function switchTab(tab, btn){
+  activeTab = tab;
+  document.querySelectorAll('.mtab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  updateBadge();
+  if(tab === 'pedidos') loadOrders();
+  if(tab === 'stock') { renderNewStock(); renderUsedStock(); }
+}
+function switchStock(type, btn){
+  document.querySelectorAll('.stab-admin').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('stock-new-panel').style.display = type==='new'?'block':'none';
+  document.getElementById('stock-used-panel').style.display = type==='used'?'block':'none';
+}
+function updateBadge(){
+  const vis = products.filter(p=>p.visible!==false).length;
+  document.getElementById('cnt-badge').textContent = products.length+' productos';
+  if(document.getElementById('stat-total')) document.getElementById('stat-total').textContent = products.length;
+  if(document.getElementById('stat-visible')) document.getElementById('stat-visible').textContent = vis;
+  if(document.getElementById('stat-hidden')) document.getElementById('stat-hidden').textContent = products.length - vis;
+}
+
+// ─── PRODUCTS PANEL ────────────────────────────────────────────
+let prodFilter = 'all';
+function filterProds(cat, btn){
+  prodFilter = cat;
+  document.querySelectorAll('.cfilter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProducts();
+}
+function renderProducts(){
+  const cont = document.getElementById('prod-rows');
+  const filtered = prodFilter==='all' ? products : products.filter(p=>p.cat===prodFilter||(p.cat||'').includes(prodFilter));
+  cont.innerHTML = filtered.map((prod, ri)=>{
+    const gi = products.indexOf(prod);
+    const prices = (prod.prices||[]).map((pr,pi)=>`
+      <div class="price-row">
+        <span class="price-s">${pr.s}</span>
+        <input class="ei" value="${pr.p}" onchange="products[${gi}].prices[${pi}].p=this.value;markDirty()">
+      </div>`).join('');
+    return `<div class="pt-row">
+      <div class="pt-name">
+        <div class="prod-dot ${prod.visible===false?'off':''}"></div>
+        <div><div>${prod.name}</div><div class="pt-cat">${prod.cat||''}</div></div>
+      </div>
+      <div class="pt-badge-cell"><input class="ei" value="${prod.badge||''}" placeholder="Badge" onchange="products[${gi}].badge=this.value;markDirty()"></div>
+      <div>${prices}<div style="margin-top:6px;">${buildImgUploader(prod.img||('prod_'+gi), prod.imgUrl||'', 'prod_'+gi, 'product', gi, prod.name)}</div></div>
+      <div><label class="toggle"><input type="checkbox" ${prod.visible!==false?'checked':''} onchange="products[${gi}].visible=this.checked;updateBadge();markDirty()"><span class="tslider"></span></label></div>
+    </div>`;
+  }).join('');
+  updateBadge();
+}
+
+// ─── STOCK: NUEVOS ─────────────────────────────────────────────
+function addNewProduct(){
+  stock.new.push({id:'prod_'+Date.now(),name:'Nuevo producto',storage:'',price:'$0',colors:[],badge:'Nuevo',visible:true});
+  renderNewStock(); markDirty();
+  setTimeout(()=>{const cards=document.querySelectorAll('.new-card');if(cards.length)cards[cards.length-1].scrollIntoView({behavior:'smooth',block:'center'});},100);
+}
+function deleteNewProduct(i){
+  if(!confirm('¿Eliminar este producto?')) return;
+  stock.new.splice(i,1); renderNewStock(); markDirty();
+}
+function renderNewStock(){
+  const grid = document.getElementById('new-grid');
+  if(!grid || !stock.new) return;
+  grid.innerHTML = stock.new.map((item,i)=>`
+    <div class="new-card">
+      <div class="nc-row"><label>Nombre</label><input class="ei" value="${item.name||''}" onchange="stock.new[${i}].name=this.value;markDirty()"></div>
+      <div class="nc-row"><label>Almacenamiento</label><input class="ei" value="${item.storage||''}" onchange="stock.new[${i}].storage=this.value;markDirty()"></div>
+      <div class="nc-row"><label>Precio USD</label><input class="ei" value="${item.price||''}" placeholder="$000" onchange="stock.new[${i}].price=this.value;markDirty()"></div>
+      <div class="nc-row"><label>Colores</label><input class="ei" value="${(item.colors||[]).join(', ')}" placeholder="Black, White..." onchange="stock.new[${i}].colors=this.value.split(',').map(s=>s.trim()).filter(Boolean);markDirty()"></div>
+      <div class="nc-row"><label>Badge</label><input class="ei" value="${item.badge||'Nuevo'}" placeholder="Nuevo, CPO..." onchange="stock.new[${i}].badge=this.value;markDirty()"></div>
+      <div class="nc-row"><label>Imagen</label>${buildImgUploader(item.id||'stock_'+i, item.imgUrl||'', 'snew_'+i, 'stock', i, item.name)}</div>
+      <div class="nc-footer">
+        <label class="toggle"><input type="checkbox" ${item.visible!==false?'checked':''} onchange="stock.new[${i}].visible=this.checked;markDirty()"><span class="tslider"></span></label>
+        <span style="font-size:.65rem;color:var(--g);">${item.visible!==false?'Visible':'Oculto'}</span>
+        <button class="btn-del" onclick="deleteNewProduct(${i})" style="margin-left:auto;">✕ Eliminar</button>
+      </div>
+    </div>`).join('');
+}
+
+// ─── STOCK: USADOS ─────────────────────────────────────────────
+function addUsedModel(){
+  stock.used.push({model:'Nuevo modelo',storage:'128GB',units:[]});
+  renderUsedStock(); markDirty();
+}
+function deleteUsedModel(mi){
+  if(!confirm('¿Eliminar este modelo?')) return;
+  stock.used.splice(mi,1); renderUsedStock(); markDirty();
+}
+function addUnit(mi){
+  stock.used[mi].units.push({color:'Black',battery:90,price:500,note:''});
+  renderUsedStock(); markDirty();
+}
+function deleteUnit(mi,ui){
+  stock.used[mi].units.splice(ui,1); renderUsedStock(); markDirty();
+}
+function renderUsedStock(){
+  const cont = document.getElementById('used-sections');
+  if(!cont || !stock.used) return;
+  cont.innerHTML = stock.used.map((model,mi)=>`
+    <div class="used-section">
+      <div class="used-sec-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <span class="used-sec-title">${model.model} <span style="font-size:.75rem;color:var(--g)">${model.storage}</span></span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="used-sec-count">${model.units.length} unidades</span>
+          <button class="btn-del" onclick="event.stopPropagation();deleteUsedModel(${mi})">✕</button>
+        </div>
+      </div>
+      <div class="used-sec-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:.65rem;">
+          <div><label style="font-size:.6rem;color:var(--g);display:block;margin-bottom:2px;">MODELO</label><input class="ei" value="${model.model}" onchange="stock.used[${mi}].model=this.value;renderUsedStock();markDirty()"></div>
+          <div><label style="font-size:.6rem;color:var(--g);display:block;margin-bottom:2px;">ALMACEN.</label><input class="ei" value="${model.storage}" onchange="stock.used[${mi}].storage=this.value;markDirty()"></div>
+        </div>
+        <div class="unit-row-head"><span>Color</span><span>Batería %</span><span>Precio USD</span><span>Nota</span><span></span></div>
+        ${model.units.map((u,ui)=>`
+          <div class="unit-row-admin">
+            <input class="ei" value="${u.color||''}" placeholder="Black" onchange="stock.used[${mi}].units[${ui}].color=this.value;markDirty()">
+            <input class="ei" type="number" value="${u.battery||90}" min="0" max="100" onchange="stock.used[${mi}].units[${ui}].battery=parseInt(this.value);markDirty()">
+            <input class="ei" type="number" value="${u.price||0}" onchange="stock.used[${mi}].units[${ui}].price=parseFloat(this.value);markDirty()">
+            <input class="ei" value="${u.note||''}" placeholder="Opcional" onchange="stock.used[${mi}].units[${ui}].note=this.value;markDirty()">
+            <button class="btn-del" onclick="deleteUnit(${mi},${ui})">✕</button>
+          </div>`).join('')}
+        <button class="add-unit-btn" onclick="addUnit(${mi})">+ Agregar unidad</button>
+      </div>
+    </div>`).join('');
+}
+
+// ─── ORDERS PANEL ──────────────────────────────────────────────
+var allOrders = [], currentOrderFilter = 'all';
+async function loadOrders(){
+  var list = document.getElementById('orders-list');
+  if(list) list.innerHTML = '<div class="orders-loading">Cargando pedidos...</div>';
+  try { var r = await fetch('save_order.php?v='+Date.now()); allOrders = r.ok?(await r.json()):[];} catch(e){allOrders=[];}
+  renderOrders(); updateOrdersBadge();
+}
+function updateOrdersBadge(){
+  var n = allOrders.filter(function(o){return o.status==='nuevo';}).length;
+  var b = document.getElementById('pedidos-badge');
+  var label = document.getElementById('orders-count-label');
+  if(b){b.textContent=n;b.style.display=n>0?'inline-flex':'none';}
+  if(label)label.textContent=allOrders.length+' pedido'+(allOrders.length!==1?'s':'');
+}
+function filterOrders(status,btn){
+  currentOrderFilter=status;
+  document.querySelectorAll('.ofilter').forEach(function(b){b.classList.remove('active');});
+  if(btn)btn.classList.add('active');
+  renderOrders();
+}
+function getOrderNum(id){return '#'+String(id).slice(-6);}
+function getStatusLabel(s){return{nuevo:'🔵 Nuevo',contactado:'🟡 Contactado',concretado:'🟢 Concretado',cancelado:'🔴 Cancelado'}[s]||s;}
+function renderOrders(){
+  var list=document.getElementById('orders-list');if(!list)return;
+  var filtered=currentOrderFilter==='all'?allOrders:allOrders.filter(function(o){return o.status===currentOrderFilter;});
+  if(!filtered.length){list.innerHTML='<div class="orders-empty">No hay pedidos'+(currentOrderFilter!=='all'?' con este estado':'')+' 📭</div>';return;}
+  var sc={nuevo:'#3b82f6',contactado:'#f59e0b',concretado:'#22c55e',cancelado:'#ef4444'};
+  list.innerHTML=filtered.map(function(o){
+    var d=new Date(o.date);
+    var ds=d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'2-digit'})+' · '+d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+    var prods=(o.products||[]).map(function(p){return '<span class="order-prod-tag">'+p+'</span>';}).join('');
+    var tel=(o.phone||'').replace(/[^0-9]/g,'');
+    var wt=encodeURIComponent('Hola '+o.name+'! Te contactamos de Cell Caribe por tu pedido '+getOrderNum(o.id)+' de '+(o.products||[]).join(', ')+'. Seguis interesado?');
+    var bc=sc[o.status]||'#555';
+    return '<div class="order-card" data-oid="'+o.id+'" style="border-left-color:'+bc+'">'+
+      '<div class="order-card-header">'+
+        '<div class="order-num-status"><span class="order-number">'+getOrderNum(o.id)+'</span><span class="order-status-badge status-'+o.status+'">'+getStatusLabel(o.status)+'</span></div>'+
+        '<span class="order-date">'+ds+'</span>'+
+      '</div>'+
+      '<div class="order-card-body">'+
+        '<div class="order-client-name">'+o.name+'</div>'+
+        '<div class="order-client-contact"><span>📱 '+o.phone+'</span>'+(o.email?'<span>✉ '+o.email+'</span>':'')+'</div>'+
+        (prods?'<div class="order-products">'+prods+'</div>':'')+
+        (o.note?'<div class="order-note">💬 '+o.note+'</div>':'')+
+      '</div>'+
+      '<div class="order-card-footer">'+
+        '<div class="order-status-select-wrap">'+
+          '<label>Estado:</label>'+
+          '<select class="order-status-select" data-oid="'+o.id+'" onchange="updateOrderStatus(this.dataset.oid,this.value)">'+
+            '<option value="nuevo"'+(o.status==='nuevo'?' selected':'')+'>🔵 Nuevo</option>'+
+            '<option value="contactado"'+(o.status==='contactado'?' selected':'')+'>🟡 Contactado</option>'+
+            '<option value="concretado"'+(o.status==='concretado'?' selected':'')+'>🟢 Concretado</option>'+
+            '<option value="cancelado"'+(o.status==='cancelado'?' selected':'')+'>🔴 Cancelado</option>'+
+          '</select>'+
+        '</div>'+
+        '<div class="order-actions">'+
+          (tel?'<a href="https://wa.me/54'+tel+'?text='+wt+'" target="_blank" class="btn-order-wa">💬 WhatsApp</a>':'')+
+          '<button class="btn-order-copy" data-oid="'+o.id+'" onclick="copyOrderInfo(this.dataset.oid)">📋 Copiar</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+async function updateOrderStatus(id,status){
+  var sc={nuevo:'#3b82f6',contactado:'#f59e0b',concretado:'#22c55e',cancelado:'#ef4444'};
+  try{await fetch('save_order.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update_status',id:id,status:status})});}catch(e){}
+  var o=allOrders.find(function(x){return x.id===id;});if(o)o.status=status;
+  var card=document.querySelector('[data-oid="'+id+'"]');
+  if(card){card.style.borderLeftColor=sc[status]||'#555';var b=card.querySelector('.order-status-badge');if(b){b.className='order-status-badge status-'+status;b.textContent=getStatusLabel(status);}}
+  updateOrdersBadge();
+}
+function copyOrderInfo(id){
+  var o=allOrders.find(function(x){return x.id===id;});if(!o)return;
+  var text='Pedido '+getOrderNum(o.id)+'\nNombre: '+o.name+'\nTeléfono: '+o.phone+(o.email?'\nEmail: '+o.email:'')+'\nProductos: '+(o.products||[]).join(', ')+(o.note?'\nNota: '+o.note:'')+'\nEstado: '+o.status;
+  navigator.clipboard.writeText(text).catch(function(){});
+  showToast('Datos copiados');
+}
+
+// ─── TOAST ─────────────────────────────────────────────────────
+function showToast(msg, isErr){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=isErr?'err show':'show';
+  clearTimeout(t._tid); t._tid=setTimeout(()=>t.className='',2800);
+}
+
+// ─── UNSAVED WARNING ───────────────────────────────────────────
+window.addEventListener('beforeunload', e=>{if(dirty){e.preventDefault();e.returnValue='';}});
+
+/* ═══ TURNOS ADMIN ═══ */
+(function(){
+  var SLOTS_WEEKDAY = ['10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00','18:30'];
+  var SLOTS_SAT     = ['10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30'];
+
+  // Populate block-time select
+  function populateBlockTime(dateStr) {
+    var sel = document.getElementById('block-time');
+    if (!sel) return;
+    var d = new Date((dateStr||'2026-01-01')+'T12:00:00');
+    var slots = d.getDay()===6 ? SLOTS_SAT : SLOTS_WEEKDAY;
+    sel.innerHTML = '<option value="">Hora</option>' +
+      slots.map(function(s){ return '<option value="'+s+'">'+s+'</option>'; }).join('');
+  }
+  var bdEl = document.getElementById('block-date');
+  if (bdEl) {
+    bdEl.addEventListener('change', function(){ populateBlockTime(this.value); });
+    // Set today as default
+    var today = new Date().toISOString().slice(0,10);
+    bdEl.value = today; populateBlockTime(today);
+  }
+
+  var allTurnos = [], currentTurnoFilter = 'all';
+
+  window.loadTurnos = async function() {
+    var list = document.getElementById('turnos-list');
+    if(list) list.innerHTML='<div class="orders-loading">Cargando turnos...</div>';
+    try {
+      var r = await fetch('save_turno.php?pwd=Sarita2024&v='+Date.now());
+      allTurnos = r.ok ? (await r.json()) : [];
+    } catch(e) { allTurnos=[]; }
+    renderTurnos(); updateTurnosBadge();
+  };
+
+  window.blockSlot = async function() {
+    var date = (document.getElementById('block-date')||{value:''}).value;
+    var time = (document.getElementById('block-time')||{value:''}).value;
+    var reason = (document.getElementById('block-reason')||{value:''}).value;
+    if (!date || !time) { showToast('Elegí fecha y hora', true); return; }
+    try {
+      await fetch('save_turno.php', {method:'POST',
+        headers:{'Content-Type':'application/json','X-Admin-Password':'Sarita2024'},
+        body: JSON.stringify({action:'block',date:date,time:time,reason:reason})
+      });
+      showToast('✓ Horario bloqueado');
+      loadTurnos();
+    } catch(e) { showToast('Error al bloquear', true); }
+  };
+
+  function updateTurnosBadge() {
+    var n = allTurnos.filter(function(t){return t.status==='pendiente';}).length;
+    var b = document.getElementById('turnos-badge');
+    var label = document.getElementById('turnos-count-label');
+    if(b){b.textContent=n;b.style.display=n>0?'inline-flex':'none';}
+    if(label)label.textContent=allTurnos.length+' turno'+(allTurnos.length!==1?'s':'');
+  }
+
+  window.filterTurnos = function(status, btn) {
+    currentTurnoFilter = status;
+    document.querySelectorAll('.ofilter').forEach(function(b){
+      if(b.closest('#panel-turnos')) b.classList.remove('active');
+    });
+    if(btn) btn.classList.add('active');
+    renderTurnos();
+  };
+
+  function statusLabel(s) {
+    return {pendiente:'🟡 Pendiente',confirmado:'🟢 Confirmado',completado:'✅ Completado',cancelado:'🔴 Cancelado',bloqueado:'⛔ Bloqueado'}[s]||s;
+  }
+  function statusColor(s) {
+    return {pendiente:'#f59e0b',confirmado:'#22c55e',completado:'#3b82f6',cancelado:'#ef4444',bloqueado:'#6b7280'}[s]||'#555';
+  }
+
+  function renderTurnos() {
+    var list = document.getElementById('turnos-list');
+    if(!list) return;
+    var filtered = currentTurnoFilter==='all' ? allTurnos
+      : allTurnos.filter(function(t){return t.status===currentTurnoFilter;});
+
+    // Group by date
+    if(!filtered.length) { list.innerHTML='<div class="orders-empty">No hay turnos'+(currentTurnoFilter!=='all'?' con este estado':'')+' 📭</div>'; return; }
+
+    // Sort by date+time
+    filtered = filtered.slice().sort(function(a,b){ return (a.date+a.time).localeCompare(b.date+b.time); });
+
+    var byDate = {};
+    filtered.forEach(function(t){
+      if(!byDate[t.date]) byDate[t.date]=[];
+      byDate[t.date].push(t);
+    });
+
+    var DAYS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    var MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+    list.innerHTML = Object.keys(byDate).map(function(date){
+      var d = new Date(date+'T12:00:00');
+      var dateLabel = DAYS[d.getDay()]+' '+d.getDate()+' de '+MONTHS[d.getMonth()];
+      var cards = byDate[date].map(function(t){
+        var bc = statusColor(t.status);
+        var tel = (t.phone||'').replace(/[^0-9]/g,'');
+        var wt = encodeURIComponent('Hola '+t.name+'! Te confirmamos tu turno el '+dateLabel+' a las '+t.time+'hs en Cell Caribe, Florida 537 Local 394. Cualquier consulta escribinos.');
+        if(t.status==='bloqueado') {
+          return '<div class="order-card" style="border-left-color:#6b7280;opacity:.65;">'+
+            '<div class="order-card-header"><span class="order-number">'+t.time+'hs</span><span class="order-status-badge status-cancelado">⛔ Bloqueado</span><span class="order-date">'+t.problem+'</span></div>'+
+            '<div class="order-card-footer"><div class="order-actions">'+
+            '<button data-oid="'+t.id+'" data-s="cancelado" onclick="updTurnoStatus(this)" style="background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:8px;color:rgba(255,255,255,.5);font-size:.72rem;padding:.35rem .75rem;cursor:pointer;">Desbloquear</button>'+
+            '</div></div></div>';
+        }
+        return '<div class="order-card" data-tid="'+t.id+'" style="border-left-color:'+bc+'">'+
+          '<div class="order-card-header">'+
+            '<div class="order-num-status"><span class="order-number">'+t.time+'hs</span><span class="order-status-badge status-'+t.status+'">'+statusLabel(t.status)+'</span></div>'+
+          '</div>'+
+          '<div class="order-card-body">'+
+            '<div class="order-client-name">'+t.name+'</div>'+
+            '<div class="order-client-contact"><span>📱 '+t.phone+'</span></div>'+
+            (t.problem?'<div class="order-note">🔧 '+t.problem+'</div>':'')+
+          '</div>'+
+          '<div class="order-card-footer">'+
+            '<div class="order-status-select-wrap"><label>Estado:</label>'+
+              '<select class="order-status-select" data-tid="'+t.id+'" onchange="updTurnoStatus(this)">'+
+                '<option value="pendiente"'+(t.status==='pendiente'?' selected':'')+'>🟡 Pendiente</option>'+
+                '<option value="confirmado"'+(t.status==='confirmado'?' selected':'')+'>🟢 Confirmado</option>'+
+                '<option value="completado"'+(t.status==='completado'?' selected':'')+'>✅ Completado</option>'+
+                '<option value="cancelado"'+(t.status==='cancelado'?' selected':'')+'>🔴 Cancelado</option>'+
+              '</select>'+
+            '</div>'+
+            '<div class="order-actions">'+
+              (tel?'<a href="https://wa.me/54'+tel+'?text='+wt+'" target="_blank" class="btn-order-wa">💬 Confirmar por WA</a>':'')+
+            '</div>'+
+          '</div></div>';
+      }).join('');
+      return '<div style="margin-bottom:4px;font-size:.7rem;font-weight:700;letter-spacing:.06em;color:rgba(255,255,255,.35);text-transform:uppercase;padding:0 2px;">'+dateLabel+'</div>'+cards;
+    }).join('<div style="height:12px;"></div>');
+  }
+
+  window.updTurnoStatus = async function(el) {
+    var id = el.dataset.oid || el.dataset.tid;
+    var status = el.dataset.s || el.value;
+    try {
+      await fetch('save_turno.php',{method:'POST',
+        headers:{'Content-Type':'application/json','X-Admin-Password':'Sarita2024'},
+        body:JSON.stringify({action:'update_status',id:id,status:status})
+      });
+      var t = allTurnos.find(function(x){return x.id===id;});
+      if(t) t.status=status;
+      renderTurnos(); updateTurnosBadge();
+    } catch(e){}
+  };
+
+  // Hook into switchTab
+  var _origST = window.switchTab;
+  window.switchTab = function(tab, btn) {
+    _origST(tab, btn);
+    if(tab==='turnos') loadTurnos();
+  };
+})();
+
+
+/* ═══ IMAGE UPLOAD SYSTEM — BASE64 CLIENT-SIDE ═══ */
+// No server upload needed — image converted to base64 in browser
+// Saved directly in products.json via existing save.php
+
+function setImgStatus(statusId, msg, cls) {
+  var el = document.getElementById(statusId);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'img-upload-status' + (cls ? ' ' + cls : '');
+}
+
+function applyImgUrl(url, thumbId, urlInputId, key) {
+  var thumb = document.getElementById(thumbId);
+  if (thumb) { thumb.src = url; thumb.classList.add('show'); }
+  var ph = document.getElementById(thumbId.replace('_thumb','_ph'));
+  if (ph) ph.style.display = 'none';
+  var urlEl = document.getElementById(urlInputId);
+  if (urlEl) urlEl.value = url.startsWith('data:') ? '(imagen subida)' : url;
+  updateImgInData(key, url);
+  markDirty();
+}
+
+async function handleImgFile(input, key, thumbId, statusId, urlInputId) {
+  var file = input.files[0];
+  if (!file) { setImgStatus(statusId, '✗ No se seleccionó archivo', 'err'); return; }
+  if (file.size > 3 * 1024 * 1024) {
+    setImgStatus(statusId, '✗ Muy grande. Máx 3MB.', 'err'); return;
+  }
+  setImgStatus(statusId, 'Leyendo imagen...');
+  // Store IDs locally so closures capture them
+  var _thumbId = thumbId, _statusId = statusId, _urlInputId = urlInputId, _key = key;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    setImgStatus(_statusId, 'Procesando...');
+    var b64 = e.target.result;
+    var img = new Image();
+    img.onload = function() {
+      try {
+        var maxW = 800, maxH = 800;
+        var w = img.width, h = img.height;
+        if (w > maxW || h > maxH) {
+          var ratio = Math.min(maxW/w, maxH/h);
+          w = Math.round(w*ratio); h = Math.round(h*ratio);
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        var resized = canvas.toDataURL('image/jpeg', 0.85);
+        // Apply immediately
+        applyImgUrl(resized, _thumbId, _urlInputId, _key);
+        setImgStatus(_statusId, '✓ Imagen aplicada — presioná Guardar', 'ok');
+        // Show toast
+        showToast('✓ Imagen lista — presioná Guardar', false);
+      } catch(err) {
+        setImgStatus(_statusId, '✗ Error al procesar: ' + err.message, 'err');
+      }
+    };
+    img.onerror = function() {
+      setImgStatus(_statusId, '✗ No se pudo leer la imagen', 'err');
+    };
+    img.src = b64;
+  };
+  reader.onerror = function() {
+    setImgStatus(_statusId, '✗ Error al leer archivo', 'err');
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleImgUrl(key, url, thumbId, urlInputId) {
+  if (!url || !url.trim()) return;
+  var u = url.trim();
+  applyImgUrl(u, thumbId, urlInputId, key);
+  setImgStatus(thumbId.replace('_thumb','_status'), '✓ URL aplicada — guardá el panel', 'ok');
+}
+
+function updateImgInData(key, url) {
+  products.forEach(function(p, i) {
+    if (p.img === key || ('prod_'+i) === key) { p.imgUrl = url; }
+  });
+  (stock.new || []).forEach(function(s, i) {
+    if (s.id === key || ('snew_'+i) === key) { s.imgUrl = url; }
+  });
+}
+
+function buildImgUploader(key, currentUrl, idPrefix, type, idx, name) {
+  var hasImg = currentUrl && currentUrl.length > 10;
+  // Store img in a global registry to avoid passing base64 in onclick attrs
+  window._imgRegistry = window._imgRegistry || {};
+  window._imgRegistry[idPrefix] = { type: type, idx: idx, name: name, url: currentUrl || '' };
+  var thumb = hasImg
+    ? '<img src="' + currentUrl + '" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.1);" alt="">'
+    : '<div style="width:44px;height:44px;border-radius:8px;border:1px dashed rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:rgba(255,255,255,.2);">🖼</div>';
+  var btnLabel = hasImg ? '🖼 Cambiar imagen' : '🖼 Agregar imagen';
+  return '<div style="display:flex;align-items:center;gap:10px;margin-top:6px;">' +
+    thumb +
+    '<button class="btn-del" style="border-color:rgba(33,150,243,.3);color:#2196f3;font-size:.7rem;padding:.3rem .75rem;" ' +
+      'onclick="openImgFromRegistry(' + "'" + idPrefix + "'" + ')">' +
+      btnLabel +
+    '</button>' +
+  '</div>';
+}
+
+
+/* ═══ IMAGE MODAL ═══ */
+var _modalKey = null, _modalIdx = null, _modalType = null, _modalPendingUrl = null;
+
+function openImgFromRegistry(idPrefix) {
+  var reg = (window._imgRegistry || {})[idPrefix];
+  if (!reg) { showToast('Error: producto no encontrado', true); return; }
+  openImgModal(reg.type, reg.idx, reg.name, reg.url);
+}
+
+function openImgModal(type, idx, name, currentImg) {
+  _modalKey = null; _modalIdx = idx; _modalType = type; _modalPendingUrl = null;
+  // Set title
+  document.getElementById('img-modal-title').textContent = 'Imagen — ' + name;
+  // Clear inputs
+  document.getElementById('img-modal-url').value = '';
+  document.getElementById('img-modal-status').textContent = '';
+  document.getElementById('img-modal-status').style.color = '';
+  document.getElementById('img-modal-save').style.display = 'none';
+  document.getElementById('img-modal-file').value = '';
+  // Show current image
+  var prev = document.getElementById('img-modal-preview');
+  if (currentImg && currentImg.length > 10) {
+    prev.innerHTML = '<img src="' + currentImg + '" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;">';
+  } else {
+    prev.innerHTML = '<span style="color:rgba(255,255,255,.2);font-size:.82rem;">Sin imagen</span>';
+  }
+  // Show modal
+  document.getElementById('img-modal').style.display = 'block';
+  document.getElementById('img-modal-backdrop').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeImgModal() {
+  document.getElementById('img-modal').style.display = 'none';
+  document.getElementById('img-modal-backdrop').style.display = 'none';
+  document.body.style.overflow = '';
+  _modalPendingUrl = null;
+}
+
+function setModalStatus(msg, ok) {
+  var el = document.getElementById('img-modal-status');
+  el.textContent = msg;
+  el.style.color = ok ? '#22c55e' : ok === false ? '#ef4444' : 'rgba(255,255,255,.4)';
+}
+
+function handleModalFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { setModalStatus('✗ Máx 5MB', false); return; }
+  setModalStatus('Procesando...');
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var maxW = 800, maxH = 800, w = img.width, h = img.height;
+      if (w > maxW || h > maxH) { var r = Math.min(maxW/w, maxH/h); w = Math.round(w*r); h = Math.round(h*r); }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      var b64 = canvas.toDataURL('image/jpeg', 0.85);
+      _modalPendingUrl = b64;
+      // Show preview
+      document.getElementById('img-modal-preview').innerHTML =
+        '<img src="' + b64 + '" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;">';
+      document.getElementById('img-modal-save').style.display = 'block';
+      setModalStatus('✓ Imagen lista — confirmá para guardar', true);
+    };
+    img.onerror = function() { setModalStatus('✗ No se pudo leer la imagen', false); };
+    img.src = e.target.result;
+  };
+  reader.onerror = function() { setModalStatus('✗ Error al leer archivo', false); };
+  reader.readAsDataURL(file);
+}
+
+function applyModalUrl() {
+  var url = document.getElementById('img-modal-url').value.trim();
+  if (!url || (!url.startsWith('http') && !url.startsWith('data:'))) {
+    setModalStatus('✗ URL inválida', false); return;
+  }
+  _modalPendingUrl = url;
+  document.getElementById('img-modal-preview').innerHTML =
+    '<img src="' + url + '" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;">';
+  document.getElementById('img-modal-save').style.display = 'block';
+  setModalStatus('✓ URL lista — confirmá para guardar', true);
+}
+
+function saveModalImg() {
+  if (!_modalPendingUrl) return;
+  var url = _modalPendingUrl;
+  if (_modalType === 'product') {
+    products[_modalIdx].imgUrl = url;
+  } else if (_modalType === 'stock') {
+    stock.new[_modalIdx].imgUrl = url;
+  }
+  markDirty();
+  showToast('✓ Imagen guardada — presioná Guardar arriba');
+  closeImgModal();
+  // Re-render to show updated thumb
+  if (_modalType === 'product') renderProducts();
+  else renderNewStock();
+}
+
+
+/* ═══ PROMO ADMIN ═══ */
+var _promoData = {"active": false, "badge": "Oferta Especial", "title": "iPhone 15 Pro Max", "discount": "15% OFF", "description": "Aprovechá esta oferta por tiempo limitado. Stock limitado, garantía incluida.", "price_original": "", "price_promo": "", "countdown_to": "", "img_url": "", "wa_text": "Hola! Quiero consultar la promo de la semana"};
+
+async function loadPromoAdmin() {
+  try {
+    var r = await fetch('promo.json?v='+Date.now(), {cache:'no-store'});
+    if (r.ok) _promoData = await r.json();
+  } catch(e) {}
+  fillPromoForm(_promoData);
+}
+
+function fillPromoForm(p) {
+  document.getElementById('promo-active').checked    = !!p.active;
+  document.getElementById('promo-badge').value       = p.badge    || '';
+  document.getElementById('promo-title').value       = p.title    || '';
+  document.getElementById('promo-discount').value    = p.discount || '';
+  document.getElementById('promo-desc').value        = p.description || '';
+  document.getElementById('promo-price-orig').value  = p.price_original || '';
+  document.getElementById('promo-price-new').value   = p.price_promo   || '';
+  document.getElementById('promo-wa').value          = p.wa_text  || '';
+  document.getElementById('promo-img-url').value     = p.img_url  || '';
+  if (p.countdown_to) document.getElementById('promo-countdown').value = p.countdown_to.slice(0,16);
+  previewPromoImg();
+  updatePromoPreview();
+}
+
+function getPromoForm() {
+  return {
+    active:        document.getElementById('promo-active').checked,
+    badge:         document.getElementById('promo-badge').value.trim(),
+    title:         document.getElementById('promo-title').value.trim(),
+    discount:      document.getElementById('promo-discount').value.trim(),
+    description:   document.getElementById('promo-desc').value.trim(),
+    price_original:document.getElementById('promo-price-orig').value.trim(),
+    price_promo:   document.getElementById('promo-price-new').value.trim(),
+    wa_text:       document.getElementById('promo-wa').value.trim(),
+    countdown_to:  document.getElementById('promo-countdown').value || '',
+    img_url:       document.getElementById('promo-img-url').value.trim() || (_promoData.img_url||'')
+  };
+}
+
+function updatePromoPreview() {
+  var title = document.getElementById('promo-title').value || '—';
+  var disc  = document.getElementById('promo-discount').value || '—';
+  var badge = document.getElementById('promo-badge').value || 'Oferta Especial';
+  var orig  = document.getElementById('promo-price-orig').value;
+  var newp  = document.getElementById('promo-price-new').value;
+  document.getElementById('pp-title').textContent = title;
+  document.getElementById('pp-disc').textContent  = disc;
+  document.getElementById('pp-badge').textContent = '🔥 ' + badge;
+  document.getElementById('pp-price').textContent = orig ? (orig + ' → ' + newp) : newp;
+}
+
+// Hook inputs to live preview
+['promo-title','promo-discount','promo-badge','promo-price-orig','promo-price-new'].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', updatePromoPreview);
+});
+
+function previewPromoImg() {
+  var url = document.getElementById('promo-img-url').value.trim() || (_promoData.img_url||'');
+  var prev = document.getElementById('promo-img-prev');
+  var ppImg = document.getElementById('pp-img');
+  if (url && url.length > 10) {
+    prev.innerHTML = '<img src="'+url+'" style="width:100%;height:100%;object-fit:contain;">';
+    ppImg.innerHTML = '<img src="'+url+'" style="width:60px;height:70px;object-fit:contain;">';
+  } else {
+    prev.innerHTML = '📱';
+    ppImg.innerHTML = '📱';
+  }
+}
+
+function handlePromoImgFile(input) {
+  var file = input.files[0]; if (!file) return;
+  var statusEl = document.getElementById('promo-img-status');
+  statusEl.textContent = 'Procesando...';
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var maxW=800, maxH=800, w=img.width, h=img.height;
+      if(w>maxW||h>maxH){var r=Math.min(maxW/w,maxH/h);w=Math.round(w*r);h=Math.round(h*r);}
+      var canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      var b64=canvas.toDataURL('image/jpeg',0.85);
+      _promoData.img_url = b64;
+      document.getElementById('promo-img-url').value = '';
+      previewPromoImg();
+      statusEl.textContent = '✓ Imagen lista';
+      statusEl.style.color = '#22c55e';
+      setTimeout(function(){ statusEl.textContent=''; }, 3000);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function savePromo() {
+  var data = getPromoForm();
+  // If img was uploaded via file (stored in _promoData.img_url as base64), use that
+  if (_promoData.img_url && _promoData.img_url.startsWith('data:') && !data.img_url) {
+    data.img_url = _promoData.img_url;
+  }
+  try {
+    var r = await fetch('save_promo.php', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'X-Admin-Password': pwd },
+      body: JSON.stringify(data)
+    });
+    var d = await r.json();
+    if (d.ok) { showToast('✓ Promo guardada'); _promoData = data; }
+    else { showToast('Error: ' + (d.error||''), true); }
+  } catch(e) { showToast('Error de conexión', true); }
+}
+
+// Hook switchTab for promo
+var _origST2 = window.switchTab;
+window.switchTab = function(tab, btn) {
+  _origST2(tab, btn);
+  if (tab === 'promo') loadPromoAdmin();
+};
+
+</script>
+</body>
+</html>

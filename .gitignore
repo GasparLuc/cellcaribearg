@@ -1,0 +1,16 @@
+# Data files con info real del negocio
+products.json
+stock.json
+orders.json
+turnos.json
+
+# Imágenes subidas
+imgs/*.jpg
+imgs/*.jpeg
+imgs/*.png
+imgs/*.webp
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.log

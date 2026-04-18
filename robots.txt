@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /save.php
+Disallow: /save_order.php
+Disallow: /save_turno.php
+
+Sitemap: https://cellcaribe.com.ar/sitemap.xml
